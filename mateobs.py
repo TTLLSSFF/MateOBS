@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""MateOBS — 直播伴侣 OBS 模式解锁器（v1.0）
+"""MateOBS — 直播伴侣「obs直播」模式解锁 + 内存优化（v1.3）
 
-把「逆向直播伴侣 13.3.5」这一路摸出来的结论固化成独立工具，替换掉原来那套
-（助手 + 本地卡密服务 + cloudFunction 云端规则 + hook.dll 注入 + 散装 bat）。
-
-它只做三件事，全部本地、无需联网：
+单文件工具，纯本地、无需联网，只做三件事：
   1. 找到直播伴侣安装目录与 resources/app/app.content；
-  2. 用字节级规则把 OBS 模式的两道门禁打开（自动备份、可一键还原）；
-  3. 直接以管理员身份拉起伴侣 / OBS。
+  2. 用字节级规则打开 OBS 模式的两道开关（自动备份、可一键还原）；
+  3. 以管理员身份拉起伴侣 / OBS，并可优化进程内存。
 
 用法：
     python mateobs.py                  # 打开 GUI
@@ -19,7 +16,7 @@
     python mateobs.py --launch obs     # 启动 OBS
     python mateobs.py --mate-dir DIR   # 指定伴侣安装目录（默认自动探测）
     python mateobs.py --keep-running   # 打补丁时不结束伴侣进程
-    python mateobs.py --memopt mate    # 立即优化伴侣 + MediaSDK 内存（等价助手的内存优化）
+    python mateobs.py --memopt mate    # 立即优化伴侣 + MediaSDK 内存
     python mateobs.py --memopt all     # 立即优化全部进程内存（默认只碰 >200MB 的）
     python mateobs.py --memopt-watch mate --interval 60
                                        # 常驻定时优化（间隔 1..3600 秒，Ctrl+C 停）
@@ -517,9 +514,9 @@ def cli(argv):
 
 
 # ----------------------------------------------------------------------------
-# 内存优化（working set trim，等价助手里的「内存优化」）
+# 内存优化（working set trim）
 # ----------------------------------------------------------------------------
-# 助手里的实现（home_page.dart 反编译结论）：
+# 常用做法：
 #   _trimProcess(name)  -> Injector.findProcesses(name) 逐个
 #                          OpenProcess(pid, ..., 0xa20)
 #                          SetProcessWorkingSetSize(h, -2, -2)
@@ -708,7 +705,7 @@ def memopt_once(scope="mate", min_mb=200.0, quiet=False):
 
 
 class MemOptRunner(object):
-    """等价助手的 Timer.periodic：按间隔反复 trim，可随时停。"""
+    """等价 Timer.periodic：按间隔反复 trim，可随时停。"""
 
     def __init__(self, interval=60, scopes=("mate",), min_mb=200.0, on_tick=None):
         import threading
@@ -800,10 +797,10 @@ def gui():
         out.insert("end", msg + "\n")
         out.see("end")
 
-    # ---- 内存优化面板（等价助手「内存优化」弹窗） ----
+    # ---- 内存优化面板 ----
     import threading
 
-    mf = ttk.LabelFrame(root, text="内存优化 —— 等价助手里的『优化直播伴侣内存 / 优化全部进程内存』", padding=(8, 6))
+    mf = ttk.LabelFrame(root, text="内存优化 —— 优化直播伴侣内存 / 优化全部进程内存", padding=(8, 6))
     mf.pack(fill="x", padx=10, pady=(0, 4))
 
     mc = load_config()
